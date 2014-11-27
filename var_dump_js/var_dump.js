@@ -1,9 +1,17 @@
+/**
+ * var_dump-js v2.0.1 - A JavaScript kit to output var in page.
+ *
+ * https://github.com/purplestone/var_dump_js
+ *
+ * Copyright 2014
+ * Released under the MIT license.
+ */
 
-(function () {
+;(function () {
 	var typeOf = function (o) {
 		return Object.prototype.toString.call(o);
 	};
-	var mergePropertyFrom = function(targetObj, srcObj, getPrototypeProperty) {//debugger;
+	var mergePropertyFrom = function(targetObj, srcObj, getPrototypeProperty) {
 		var i;
 		for (i in srcObj) {
 			if(getPrototypeProperty || srcObj.hasOwnProperty(i)) {
@@ -13,7 +21,7 @@
 		return targetObj;
 	};
 	var isArray = function (obj) {
-		return typeOf(obj) === "[object Array]" || (obj instanceof Array);
+		return typeOf(obj) === '[object Array]' || (obj instanceof Array);
 	};
 	var isString = function (o) {
 		return typeOf(o) === '[object String]';
@@ -21,8 +29,7 @@
 	var o = {
 		"print_r" : (function () {
 
-			var _fun = {}['print_r'] = function (sValueOut, bHtml) {
-				//var _fun = arguments.callee;
+			var _fun = {}['print_r'] = function (sValueOut, bHtml, iStack) {
 				var ooTT, eT;
 				if(_fun.bp){
 					return;
@@ -72,6 +79,25 @@
 					eT.style.color = '#ff9';
 					oV.appendChild(eT);
 					oV.appendChild(document.createTextNode(' : '+sValueOut));
+				}
+				var sStack = '';
+				try{
+					var err = new Error('var_dump_js track line');
+					sStack = err.stack;
+					iStack = iStack || 1;
+					var aStack = sStack.split('\n').map(function (s) {
+						return s.trim();
+					}).filter(function (s) {
+						return /^(@|at)/.test(s);
+					});
+					if(aStack[0].indexOf('@') === 0 && iStack > 1) {
+						iStack--;
+					}
+					sStack = aStack.slice(iStack, iStack+1);
+					oV.title = sStack;
+					throw err;
+				}catch(e) {
+					
 				}
 				_fun.db.appendChild(oV);
 				_fun.db.appendChild(document.createElement('br'));
@@ -189,7 +215,7 @@
 			return mergePropertyFrom(_fun, {
 				'alert': function (s) {
 					if(window.print_r) {
-						print_r(s, true);
+						print_r(s, true, 3);
 					}else{
 						alert(s);
 					}
@@ -199,10 +225,12 @@
 		}())
 	};
 
-	window.print_r = o.print_r;
-	window.var_dump = o.var_dump;
-;
+	if(!window.var_dump) {
 
+		window.print_r = o.print_r;
+		window.var_dump = o.var_dump;
+
+	}
 
 	
 }());
